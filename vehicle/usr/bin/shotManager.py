@@ -374,12 +374,9 @@ class ShotManager():
 
         if button == btn_msg.ButtonCameraClick:
             if event == btn_msg.Press:
-                self.xiaomiManager.handleToggleRecord()
-            elif event == btn_msg.DoubleClick:
-                self.xiaomiManager.handleTakePicture()
-            elif event == btn_msg.LongHold:
-                self.xiaomiManager.handleReset()
-
+                self.xiaomiManager.onButtonPress()
+            elif event == btn_msg.Release:
+                self.xiaomiManager.onButtonRelease()
 
     def enterShot(self, shot):
         # check our EKF - if it's bad, reject this shot entry attempt

@@ -1,0 +1,91 @@
+
+Xiaomi Yi Camera control from Solo
+
+After getting a Feiyu-Tech Mini3D gimbal to work on the Solo, I thought it would be kind of cool to be able to control the camera itself from the "paddle" control on the controller to start and stop video recording. So that's what this is about.
+
+Basic Idea
+
+The Xiaomi Yi camera is basically a tiny Linux machine. One reason it's such a cool little camera is that it exposes a "service" for controlling it over a network. (This is the service the Xiaomi Yi app uses to change settings, record, take pictures, etc.)
+
+Out of the box, the Yi is in AP mode. You can see this by powering it up and turning its wifi on. You'll see an AP you can connect to. Once 
+you've connected to the AP, the camera is at 192.168.42.1. If you create an empty `enable_info_display.script` file in the root of the SD card, you can telnet into the camera and screw around (userid=root, no password). 
+
+What we're interested in here is the ability to start and stop recording, and take pictures via commands sent across a wifi connection. You can also change picture mode, resolution, etc. See the links below for details. 
+
+Camera Setup
+
+You can set the camera to operate in "station" mode, so it will connect to an existing wifi network. Then it can be addressed along with other devices, such as the Solo. That's what's needed here, as well as connecting with a static IP so scripts can find it. 
+
+The attached camera_files.zip file contains a bunch of files that you need to unpack onto the root of the camera's SD card. (TODO: Put that list together, and include the one that allows telnet access.)
+
+Once you've unzipped the file onto the SD card, edit the wpa_supplicant.conf file to reference your SoloLink_XXXX wifi network, password, etc.
+
+Unmount your camera (so the files actually get saved to the SD card), unplug the camera from USB, and it will power off.
+
+The next time you start the camera, it's going to try to connect to your Solo's wifi network. So the Solo and TX need to be up and running before you power up the camera.
+
+Power the camera up, wait for the light on the front to stop flashing. You'll have 30 seconds to turn the camera's wifi on. You'll hear a short beep, at which point the camera starts working on getting itself into "station" mode. Then you'll hear a long beep, indicating that it's in station mode and connected. A second or so later, you should be able to connect to it. 
+
+NOTE: This doesn't really make any permanent modifications to the camera. To get normal behavior, rename autoexec.ash to something else (derp.txt, for example) and reboot it. It will come up in AP mode like it normally does, and you can use the Xiaomi app with it like you normally would. 
+
+CREDITS: All of this is the work of some reverse-engineering Xiaomi Yi geniuses. The original code I based my code on is from them:
+
+.   https://dashcamtalk.com/forum/threads/camera-wifi-in-client-mode-working-ash-script-inside.12239/
+/home/kellys/work/solo/xiaomi/wifi_station_mode
+.   https://github.com/kerenmac/Xiaomi-Yi
+.   https://github.com/deltaflyer4747/Xiaomi_Yi
+
+Having gotten this far, you can test the camera from your PC by doing this:
+
+.   Power up your Solo and controller.
+.   Join your SoloLink_xxxx AP.
+.   Power up the camera, turn its wifi on, and wait around for it to connect.
+.   Run xiaomi_record_start.py.
+
+You should see the camera start recording video. Run `xiaomi_record_stop.py` to stop it.
+
+Solo Setup
+
+I don't know if this voids your warranty or not, but if it does, don't say I didn't warn you. It probably will. I accept no responsibility whatsoever for bad things that happen to you as a result of reading anything in this document, etc. 
+
+The first thing to do is connect to the SoloLink_xxxx AP with your computer, and ssh into the Solo. See http://dev.3dr.com/ for some good guidance on getting around on the Solo from a terminal.
+
+Once you're in, run these commands:
+
+cd /usr/bin
+cp -v shotManager.py shotManager.save.py
+
+Now, you can safely replace the existing `shotManager.py` script with the updated one that talks to the Xiaomi camera (vs. the GoPro).
+
+The only changes to `shotManager.py` are as follows:
+
+`import XiaomiManager` (just below "import GoProManager")
+`self.xiaomiManager = XiaomiManager.XiaomiManager(self)` (just below "self.goproManager = GoProManager.GoProManager(self)")
+
+...and at the bottom of handleButtons(self):
+
+        `if button == btn_msg.ButtonCameraClick:`
+            `if event == btn_msg.Press:`
+                `self.xiaomiManager.onButtonPress()`
+            `elif event == btn_msg.Release:`
+                `self.xiaomiManager.onButtonRelease()`
+
+Changing files
+
+Use scp or similar to push the `shotManager.py` and `XiaomiManager.py` scripts to /usr/bin on the Solo. Something like this:
+
+`$ scp *Manager.py root@10.1.1.10:/usr/bin`
+
+Reboot the Solo.
+
+Make sure the Solo, controller, and the Camera are all up and running and connected to the SoloLink_xxxx AP.
+
+You should be able to click the paddle (I mean "push it straight down", not "move it back and forth in pitch-altering movements"). If everything is working right, you should see the Yi's front light flashing, indicating that it's recording. Press the paddle again, and it should stop.
+
+If you happen to stop recording manually by pushing the button on the top of the camera, the XiaomiManager will think it's still recording and won't do anything if you click the paddle (I don't know of a way to "ask" this camera what it's doing from Python). If this happens, just click the paddle a couple of times, and it will get back in sync. If you power the camera off for some reason, the record commands won't do anything until you turn it back on again. The good thing is, it does recover if you do that without having to reboot the Solo.
+
+Using it
+
+To start recording, click the paddle as described above. To stop it again, click the paddle again. To take a still picture, hold it for about 3 seconds. (This won't work if you're already recording).
+
+That's about it.
