@@ -16,6 +16,10 @@ logger = shotLogger.logger
 camaddr = "10.1.1.12"
 camport = 7878
 
+CMD_RECORD_START = 513
+CMD_RECORD_STOP = 514
+CMD_PHOTO = 769
+
 class XiaomiManager():
     def __init__(self, shotMgr):
         self.shotMgr = shotMgr
@@ -38,10 +42,8 @@ class XiaomiManager():
 
         logger.log("onButtonRelease(): diff=%f" % diff)
 
-        if diff > 5:
-            # really long press
-            self.handleReset()
-        elif diff > 2:
+        # Long press?
+        if diff > 1:
             if self.recording:
                 logger.log("Can't take picture, recording")
             else:
@@ -68,13 +70,13 @@ class XiaomiManager():
         self.recording = False
 
     def _xiaomiRecordStart(self):
-        return self._sendMsg(513)
+        return self._sendMsg(CMD_RECORD_START)
 
     def _xiaomiRecordStop(self):
-        return self._sendMsg(514)
+        return self._sendMsg(CMD_RECORD_STOP)
 
     def _xiaomiPhoto(self):
-        return self._sendMsg(769)
+        return self._sendMsg(CMD_PHOTO)
 
     def _sendMsg(self, msgid):
         logger.log("_sendMsg(): msgid=%d" % msgid)
@@ -135,24 +137,4 @@ class XiaomiManager():
 
         return self.token
 
-    # # since the gopro can't handle multiple messages at once, we wait for a response before sending
-    # # each subsequent message.  This is how we queue up messages
-    # def queueMsg(self, msg):
-    #     if self.isCameraBusy and time.time() > self.lastRequestSent + 2.0:
-    #         self.isCameraBusy = False
-    #         self.msgQueue = Queue.Queue()
-    #         logger.log("no gopro response delivered before timeout, flushing queue")
-    #         # return current state to resynchronize client
-    #         self.sendState()
-
-    #     if self.isCameraBusy:
-    #         self.msgQueue.put(msg)
-    #         logger.log("queuing up gopro message.  Queue size is now %d"%(self.msgQueue.qsize()))
-    #     else:
-    #         self.isCameraBusy = True
-    #         self.lastRequestSent = time.time()
-    #         # Need to send False for fix_targeting so our message gets routed to the gimbal
-    #         self.shotMgr.vehicle.send_mavlink(msg, False)
-    #         self.shotMgr.vehicle.flush()
-    #         logger.log("no queue, just sending message")
 

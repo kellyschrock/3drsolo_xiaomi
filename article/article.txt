@@ -5,7 +5,7 @@ After getting a Feiyu-Tech Mini3D gimbal to work on the Solo, I thought it would
 
 Basic Idea
 
-The Xiaomi Yi camera is basically a tiny Linux machine. One reason it's such a cool little camera is that it exposes a "service" for controlling it over a network. (This is the service the Xiaomi Yi app uses to change settings, record, take pictures, etc.)
+The Xiaomi Yi camera is really cool. It's a tiny Linux machine. One thing I like about it is that it exposes a "service" for controlling it over a network. (This is the service the Xiaomi Yi app uses to change settings, record, take pictures, etc.)
 
 Out of the box, the Yi is in AP mode. You can see this by powering it up and turning its wifi on. You'll see an AP you can connect to. Once 
 you've connected to the AP, the camera is at 192.168.42.1. If you create an empty `enable_info_display.script` file in the root of the SD card, you can telnet into the camera and screw around (userid=root, no password). 
@@ -86,6 +86,6 @@ If you happen to stop recording manually by pushing the button on the top of the
 
 Using it
 
-To start recording, click the paddle as described above. To stop it again, click the paddle again. To take a still picture, hold it for about 3 seconds. (This won't work if you're already recording).
+Click down on the paddle to toggle recording. To take a still picture, hold the paddle down for more than 1 second. (This won't work if you're already recording.)
 
 That's about it.
